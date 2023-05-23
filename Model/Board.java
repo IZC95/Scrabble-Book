@@ -1,6 +1,8 @@
 package Model;
 
 
+import java.io.*;
+import java.net.Socket;
 import java.util.ArrayList;
 
 public class Board {
@@ -81,7 +83,18 @@ public class Board {
     }
 
     boolean dictionaryLegal(Word w) {
-        return true;
+        try {
+            Socket socket=new Socket("localhost",8080);
+            PrintWriter out=new PrintWriter(socket.getOutputStream());
+            BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out.println("Q,alice_in_wonderland.txt,Frank Herbert - Dune.txt,Harray Potter.txt,mobydick.txt,pg10.txt,shakespeare.txt,The Matrix.txt"+w.toString());
+       String res=in.readLine();
+       if(res.equals("True"))return true;
+       return false;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     ArrayList<Word> getWords(Word w) {
@@ -247,7 +260,7 @@ public class Board {
             int i = value.col;
             for (int k = 0; k < value.getTiles().length; k++) {
 
-                if(true) {
+
                     res += t[c][i].score;
                     if (i == 0 || i == 7 || i == 14) {
                         if (c == 0 || c == 7 || c == 14) {
@@ -311,7 +324,7 @@ public class Board {
                     if (!value.isVertical())
                         i++;
                     else c++;
-                }
+
             }
 
                 if (doubleWord > 0)
@@ -340,36 +353,36 @@ public class Board {
     int tryPlaceWord(Word w)
     {
         int res=0;
-        if (boardLegal(w))
-        {
+        if (boardLegal(w)) {
+            if (dictionaryLegal(w)) {
 
-            if(!w.isVertical()) {
+                if (!w.isVertical()) {
 
-                int i=w.col;
+                    int i = w.col;
 
 
-                for ( int k = 0; k < w.getTiles().length; k++,i++) {
-                    if(t[w.getRow()][i]==null) {
-                        t[w.getRow()][i] = w.getTiles()[k];
+                    for (int k = 0; k < w.getTiles().length; k++, i++) {
+                        if (t[w.getRow()][i] == null) {
+                            t[w.getRow()][i] = w.getTiles()[k];
+                        }
                     }
+                    res = getScore(w);
+                } else {
+                    int c = w.getRow();
+
+                    int i = w.col;
+
+
+                    for (int k = 0; k < w.getTiles().length; k++, c++)
+                        if (t[c][i] == null)
+                            t[c][i] = w.getTiles()[k];
+
+                    res = getScore(w);
+
+
                 }
-                res=getScore(w);
-            }
-            else {
-                int c=w.getRow();
 
-                int i=w.col;
-
-
-                for(int k=0;k<w.getTiles().length;k++,c++)
-                    if(t[c][i]==null)
-                        t[c][i]=w.getTiles()[k];
-
-                res=getScore(w);
-
-
-            }
-
+            }else res=-1;
         }
         return res;
     }
