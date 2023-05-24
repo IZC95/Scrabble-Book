@@ -17,14 +17,26 @@ public class Host extends Observable implements ScrabModel {
     HashMap<String,Tile[]> tileStands;
     HashMap<String,Integer> score;
     int countTurns;
+    public final String name;
+    HashMap<String,Boolean> connections;
 
-    Host()
+   public Host()
     {
+
+        Scanner scanner=new Scanner(System.in);
+        System.out.println("Enter a name");
+        name=scanner.next();
+        Tile.Bag b = Tile.Bag.getBag();
+
         score=new HashMap<>();
         randomPick=new HashMap<>();
         firstPositions= new PriorityQueue<>((t1,t2)->t1.letter-t2.letter);
         tileStands=new HashMap<>();
         stop=false;
+        randomPick.put(b.getRand(), name);
+        connections=new HashMap<>();
+        score.put(name, 0);
+        connections.put(name,true);
         start();
     }
     public void start()
@@ -61,52 +73,56 @@ public class Host extends Observable implements ScrabModel {
             {
                     if (randomPick.size() == 4)
                         out.println("The session is full");
-                    else if (randomPick.containsKey(data[0]))
+                    else if (randomPick.containsValue(data[0]))
                         out.println("Name is already taken");
                     else {
                         Tile.Bag b = Tile.Bag.getBag();
                         randomPick.put(b.getRand(), data[0]);
                         score.put(data[0], 0);
+                        connections.put(data[0],true);
+
                         out.println("available");
                     }
                 }
-            else if(data.length==2&&data[1].equals("tiles"))
-            {
-                String chars="";
-                for(Tile t:tileStands.get(data[0]))
-                    chars+=t.letter;
-                out.println(chars);
-            } else if (data.length==2&&data[1].equals("rank")) {
-                //return rank..
-            } else if (data[1].equals("Pass")) {
-                    String pullTiles="";
-                    for (Tile tile:tileStands.get(data[0])) {
+            else if(connections.get(data[0])) {
+                if (data[1].equals("startGame")) {
+                    String chars = "";
+                    for (Tile t : tileStands.get(data[0]))
+                        chars += t.letter;
+                    out.println(chars);
+                } else if (data[1].equals("endGame")) {
+
+                     connections.put(data[0], false);
+                } else if (data[1].equals("endTurn")) {
+                    String pullTiles = "";
+                    for (Tile tile : tileStands.get(data[0])) {
                         if (tile == null)
                             tile = Tile.Bag.getBag().getRand();
                         pullTiles += tile.letter;
                     }
-                        out.println(pullTiles);
+                    out.println(pullTiles);
                     endTurn();
-            } else {
-                if(players.peek().equals(data[0])) {
-                    int result=0;
+                } else {
+                    if (players.peek().equals(data[0])) {
+                        int result = 0;
 
-                if(data[1].equals("Q")) {
-                     result = tryPlaceWord( data[0], Integer.parseInt(data[2]), Integer.parseInt(data[3]), Boolean.parseBoolean(data[4]), data[5].toCharArray());
-                    if (result == 0)
-                        out.println("Illegal move");
-                    if (result == -1)
-                        out.println("false, challenge?");
-                } else if ((data[1].equals("C"))) {
-                    result=challenge(data[0], Integer.parseInt(data[2]), Integer.parseInt(data[3]), Boolean.parseBoolean(data[4]), data[5].toCharArray());
-                }
-                    out.println(result);
-                }
-                else {
-                    out.println("Not your turn");
-                }
+                        if (data[1].equals("Q")) {
+                            result = tryPlaceWord(data[0], Integer.parseInt(data[2]), Integer.parseInt(data[3]), Boolean.parseBoolean(data[4]), data[5].toCharArray());
+                            if (result == 0)
+                                out.println("Illegal move");
+                            if (result == -1)
+                                out.println("false, challenge?");
+                        } else if ((data[1].equals("C"))) {
+                            result = challenge(data[0], Integer.parseInt(data[2]), Integer.parseInt(data[3]), Boolean.parseBoolean(data[4]), data[5].toCharArray());
+                        }
+                        out.println(result);
+                    } else {
+                        out.println("Not your turn");
+                    }
 
+                }
             }
+            else out.println("disconnected from server");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -141,16 +157,17 @@ public class Host extends Observable implements ScrabModel {
 
     public void startGame(){
 
+
         countTurns=0;
         for(Tile t : firstPositions) {
             players.offer(randomPick.get(t));
             Tile.Bag.getBag().put(t);
         }
         for(String s:players)
-            tileStands.put(s,getTiles());
+            tileStands.put(s,get_Tiles());
 
     }
-    public Tile[] getTiles(){
+    public Tile[] get_Tiles(){
         Tile[] tiles=new Tile[6];
         for(int i=0;i<7;i++)
             tiles[i]=Tile.Bag.getBag().getRand();
@@ -202,7 +219,13 @@ return result;
         if(countTurns==20*players.size())
             endGame();
     }
+public char[] getTiles(){
+       String tiles="";
+    for(Tile t:tileStands.get(name))
+        tiles+=t.letter;
+    return tiles.toCharArray();
 
+}
     @Override
     public void endGame() {
 int winnerScore=0;
@@ -214,6 +237,9 @@ for (String p:score.keySet())
         Winner=p;
     }
 System.out.println("The Winner Is:"+Winner+"-"+winnerScore+"Points");
+        for (boolean b : connections.values())
+            b = false;
+        close();
     }
 
     Tile[][] getData(){

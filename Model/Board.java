@@ -87,7 +87,7 @@ public class Board {
             Socket socket=new Socket("localhost",8080);
             PrintWriter out=new PrintWriter(socket.getOutputStream());
             BufferedReader in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out.println("Q,alice_in_wonderland.txt,Frank Herbert - Dune.txt,Harray Potter.txt,mobydick.txt,pg10.txt,shakespeare.txt,The Matrix.txt"+w.toString());
+            out.println("Q,alice_in_wonderland.txt"+w.toString());
        String res=in.readLine();
        if(res.equals("True"))return true;
        return false;
@@ -354,8 +354,8 @@ public class Board {
     {
         int res=0;
         if (boardLegal(w)) {
-            if (dictionaryLegal(w)) {
-
+            //if (dictionaryLegal(w)) {
+                if(true){
                 if (!w.isVertical()) {
 
                     int i = w.col;

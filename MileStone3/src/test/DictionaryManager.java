@@ -18,8 +18,10 @@ boolean query(String...args)
         count++;
         if (count<(args.length)&&!DM.containsKey(s))
             DM.put(s, new Dictionary(s));
-        if (count<(args.length)&&DM.containsKey(s) && DM.get(s).query(q))
-            find= true;
+        if (count<(args.length)&&DM.containsKey(s) && DM.get(s).query(q)) {
+            find = true;
+
+        }
     }
     return find;
 }
