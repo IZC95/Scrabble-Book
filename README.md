@@ -38,7 +38,7 @@ To get started with the Scrabble Game project, follow these steps:
 |Java Documentation|June 19|June 30|Adir & Idan|
 |Summeraizing Video Clip|June 19|June 30|Tal & Rom
 
-## Links for GitHub profiles:
+## Links for GitHub profiles
 
 Adir ben - [adirben98](https://github.com/adirben98)  
 Idan Cohen - [IZC95](https://github.com/IZC95)  
